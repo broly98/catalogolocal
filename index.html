@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BuenHogar</title>
+
+<!-- FUENTE (sencilla y elegante) -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --bg:#f3efe9;
+    --panel:#fffdfb;
+    --accent:#3b2f2a; /* marrón oscuro */
+    --muted:#846953;  /* marrón grisáceo */
+    --warm:#c9a46b;   /* acento madera dorado */
+    --glass: rgba(255,255,255,0.6);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background:var(--bg);
+    color:var(--accent);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+  }
+
+  /* HEADER */
+  header{
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    height:78px;
+    background:linear-gradient(180deg, #171212 0%, #1f1613 70%);
+    color:white;
+    display:flex;
+    align-items:center;
+    gap:18px;
+    padding:12px 20px;
+    z-index:1200;
+    box-shadow:0 8px 24px rgba(17,13,11,0.45);
+  }
+  header h1{margin:0;font-size:20px;letter-spacing:1px}
+  header p{margin:0;font-size:13px;color:rgba(255,255,255,0.9)}
+
+  /* LAYOUT */
+  .sidebar{
+    width:300px;
+    position:fixed;
+    top:78px;
+    bottom:0;
+    left:0;
+    overflow:auto;
+    background:linear-gradient(180deg,var(--panel), #fbf8f6);
+    border-right:1px solid rgba(0,0,0,0.06);
+    padding:18px 14px;
+    box-shadow: 6px 0 20px rgba(0,0,0,0.03) inset;
+  }
+  .content{
+    margin-left:300px;
+    padding:110px 28px 48px 28px;
+  }
+
+  /* SIDEBAR BRAND */
+  .brand {
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:14px;
+  }
+  .brand .logo {
+    width:48px;height:48px;border-radius:10px;
+    background:linear-gradient(180deg,var(--warm),#a67c4a);
+    display:flex;align-items:center;justify-content:center;color:white;font-weight:700;
+    box-shadow:0 6px 16px rgba(166,124,74,0.25);
+  }
+  .brand .name {font-weight:700;font-size:15px;color:var(--accent)}
+
+  /* SEARCH (visual only) */
+  .search {
+    display:flex;
+    gap:8px;
+    margin-bottom:12px;
+  }
+  .search input{
+    flex:1;padding:10px 12px;border-radius:10px;border:1px solid rgba(0,0,0,0.06);
+    background:white; font-size:14px; color:var(--accent);
+    box-shadow:0 4px 10px rgba(0,0,0,0.04);
+  }
+
+  /* category */
+  .category{
+    font-weight:700;
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:8px;
+    cursor:pointer;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    transition:background .18s, transform .12s;
+    color:var(--accent);
+  }
+  .category:hover{background:#fbf7f3; transform:translateY(-2px)}
+  .subcontainer{margin:8px 0 18px 0; border-left:3px solid transparent}
+  .subcategory{
+    padding:8px 12px;
+    font-size:14px;
+    border-radius:8px;
+    margin:6px 6px;
+    cursor:pointer;
+    color:var(--muted);
+    background:linear-gradient(180deg,#fff,#fbfaf9);
+    transition:all .12s;
+  }
+  .subcategory:hover{background:#f6f1ea; color:var(--accent); transform:translateX(6px)}
+
+  /* product grid */
+  .product-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill,minmax(240px,1fr));
+    gap:22px;
+  }
+
+  .product-card{
+    background:linear-gradient(180deg, #fff, #fbfaf8);
+    border-radius:14px;
+    padding:12px;
+    cursor:pointer;
+    transition: transform .18s, box-shadow .18s;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    box-shadow:0 8px 24px rgba(30,30,30,0.06);
+  }
+  .product-card:hover{
+    transform: translateY(-6px);
+    box-shadow:0 20px 40px rgba(30,30,30,0.12);
+  }
+  .product-thumb{
+    width:100%;
+    aspect-ratio: 4 / 3;
+    overflow:hidden;
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: linear-gradient(180deg,#efebe6,#e8dfd5);
+    position:relative;
+  }
+  .product-thumb img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    transition: transform .6s ease, filter .25s;
+  }
+  .product-card:hover .product-thumb img{ transform: scale(1.06) }
+  .product-title{ font-weight:700; font-size:15px; margin:0; color:var(--accent) }
+  .product-sub{ font-size:13px; color:var(--muted); margin:0 }
+
+  /* tags / badges */
+  .tag{
+    display:inline-block;padding:6px 10px;border-radius:999px;font-size:12px;
+    background:linear-gradient(90deg, rgba(201,164,107,0.12), rgba(201,164,107,0.06));
+    color:var(--warm); font-weight:600;
+  }
+
+  /* modal */
+  .modal{
+    position:fixed; inset:0;
+    background:linear-gradient(rgba(15,10,8,0.6), rgba(9,6,5,0.6));
+    display:flex;align-items:center;justify-content:center;
+    z-index:2000;padding:24px;
+  }
+  .modal.hidden{ display:none }
+
+  .modal-card{
+    width:100%;
+    max-width:980px;
+    background:var(--panel);
+    border-radius:14px;
+    overflow:hidden;
+    box-shadow:0 28px 80px rgba(0,0,0,0.55);
+    display:grid;
+    grid-template-columns:1fr 380px;
+    gap:0;
+    transform:translateY(0);
+    animation:pop .28s ease;
+  }
+  @keyframes pop{ from{opacity:0; transform:translateY(12px) scale(.995)} to{opacity:1; transform:none} }
+
+  .modal-gallery{position:relative;background:#111;width:100%; min-height:420px}
+  .modal-gallery img{ width:100%; height:100%; object-fit:cover; display:block; min-height:420px }
+  .modal-controls{
+    position:absolute; top:50%; transform:translateY(-50%); width:100%; display:flex; justify-content:space-between; pointer-events:none;
+    padding:0 12px;
+  }
+  .modal-controls button{
+    pointer-events:all; background:rgba(0,0,0,0.42); border:none; color:white; padding:10px 14px; border-radius:10px; cursor:pointer;
+    box-shadow:0 6px 18px rgba(0,0,0,0.45);
+  }
+
+  .modal-info{
+    padding:20px 22px;
+  }
+  .close-x{ position:absolute; right:14px; top:12px; background:rgba(255,255,255,0.06); border-radius:8px; border:none; color:white; padding:6px 8px; cursor:pointer; z-index:10 }
+  .info-title{ font-size:20px; margin:0 0 6px 0; color:var(--accent) }
+  .info-sub{ color:var(--muted); margin:0 0 14px 0; font-size:14px }
+
+  .thumb-row{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap }
+  .thumb-row img{ width:72px; height:56px; object-fit:cover; border-radius:8px; cursor:pointer; border:2px solid transparent; box-shadow:0 8px 18px rgba(0,0,0,0.08) }
+  .thumb-row img.active{ border-color:var(--warm) }
+
+  .btnCerrarGrande{
+    margin-top:14px;
+    width:100%;
+    padding:12px;
+    background:var(--accent);
+    color:white;
+    border:none;
+    font-size:16px;
+    border-radius:10px;
+    cursor:pointer;
+    box-shadow:0 10px 24px rgba(59,47,42,0.12);
+  }
+  .btnCerrarGrande:hover{ background:#523f39 }
+
+  /* responsive */
+  @media (max-width:1000px){
+    .sidebar{ width:84px; padding:18px 8px; }
+    .content{ margin-left:84px; padding-top:130px; }
+    .modal-card{ grid-template-columns:1fr; max-width:720px; }
+    .modal-gallery{ min-height:300px }
+  }
+
+  /* small helpers */
+  .muted{ color:var(--muted) }
+  footer{ padding:18px; text-align:center; color:var(--muted); font-size:13px; margin-top:30px }
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:center;gap:14px">
+    <div style="display:flex;flex-direction:column">
+      <h1 style="margin:0">BUENHOGAR</h1>
+      <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.85)">Catálogo</p>
+    </div>
+  </div>
+</header>
+
+<aside class="sidebar" id="sidebar">
+  <div class="brand">
+    <div class="logo">BH</div>
+    <div>
+      <div class="name">BuenHogar</div>
+      <div style="font-size:12px;color:var(--muted)">Muebles & Diseño</div>
+    </div>
+  </div>
+
+  <div class="search">
+    <input id="searchInput" placeholder="Buscar producto..." />
+  </div>
+
+  <div id="categoryMenu"></div>
+</aside>
+
+<main class="content">
+  <div id="productGrid" class="product-grid"></div>
+  <footer>BuenHogar — Catálogo (Rústico Elegante)</footer>
+</main>
+
+<!-- MODAL -->
+<div id="productModal" class="modal hidden" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true">
+    <div class="modal-gallery" id="modalGallery">
+      <button id="closeModal" class="close-x" title="Cerrar">&times;</button>
+      <div id="galleryImageWrapper" style="height:100%; width:100%;">
+        <img id="mainGalleryImg" src="" alt="Imagen producto">
+      </div>
+
+      <div class="modal-controls">
+        <div style="padding-left:6px"><button id="prevBtn" title="Anterior">&#10094;</button></div>
+        <div style="padding-right:6px"><button id="nextBtn" title="Siguiente">&#10095;</button></div>
+      </div>
+    </div>
+
+    <div class="modal-info">
+      <h2 id="modalTitle" class="info-title"></h2>
+      <p id="modalSub" class="info-sub"></p>
+      <p id="modalCategory" class="muted"></p>
+
+      <div class="thumb-row" id="thumbRow"></div>
+
+      <button id="cerrarGrande" class="btnCerrarGrande">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ----------------------------------------
+   Datos: todas tus categorías y rutas listas
+   (estas rutas apuntan a la carpeta 'imagenes/')
+---------------------------------------- */
+
+const catalogData = {
+"ALCOBAS": {
+  "ALCOBA BUCARAMANGA": [{ name: "ALCOBA BUCARAMANGA", images:[
+    "imagenes/alcoba-bucaramanga-1.jpg",
+    "imagenes/alcoba-bucaramanga-2.jpg",
+    "imagenes/alcoba-bucaramanga-3.jpg"
+  ]}],
+  "ALCOBA DECO RICARDO": [{ name: "ALCOBA DECO RICARDO", images:[
+    "imagenes/alcoba-deco-ricardo-1.jpg",
+    "imagenes/alcoba-deco-ricardo-2.jpg",
+    "imagenes/alcoba-deco-ricardo-3.jpg"
+  ]}],
+  "ALCOBA RUSTICA": [{ name: "ALCOBA RUSTICA", images:[
+    "imagenes/alcoba-rustica-1.jpg",
+    "imagenes/alcoba-rustica-2.jpg",
+    "imagenes/alcoba-rustica-3.jpg"
+  ]}]
+},
+"CABECEROS": {
+  "CABECERO 160": [{ name:"CABECERO 160", images:[
+    "imagenes/cabecero-160-1.jpg","imagenes/cabecero-160-2.jpg","imagenes/cabecero-160-3.jpg"
+  ]}],
+  "CABECERO 3D 100": [{ name:"CABECERO 3D 100", images:[
+    "imagenes/cabecero-3d-100-1.jpg","imagenes/cabecero-3d-100-2.jpg","imagenes/cabecero-3d-100-3.jpg"
+  ]}],
+  "CABECERO ARIEL": [{ name:"CABECERO ARIEL", images:[
+    "imagenes/cabecero-ariel-1.jpg","imagenes/cabecero-ariel-2.jpg","imagenes/cabecero-ariel-3.jpg"
+  ]}]
+},
+"BASE CAMAS": {
+  "BASE CAMA MAJITEX 140": [{ name:"BASE CAMA MAJITEX 140", images:[
+    "imagenes/base-majitex-140-1.jpg","imagenes/base-majitex-140-2.jpg","imagenes/base-majitex-140-3.jpg"
+  ]}],
+  "COMBO ESPEJO 160": [{ name:"COMBO ESPEJO 160", images:[
+    "imagenes/combo-espejo-160-1.jpg","imagenes/combo-espejo-160-2.jpg","imagenes/combo-espejo-160-3.jpg"
+  ]}],
+  "CAMA BASE 160 ECO": [{ name:"CAMA BASE 160 ECO", images:[
+    "imagenes/cama-base-160-eco-1.jpg","imagenes/cama-base-160-eco-2.jpg","imagenes/cama-base-160-eco-3.jpg"
+  ]}],
+  "CAMA BASE ARIEL 120": [{ name:"CAMA BASE ARIEL 120", images:[
+    "imagenes/cama-base-ariel-120-1.jpg","imagenes/cama-base-ariel-120-2.jpg","imagenes/cama-base-ariel-120-3.jpg"
+  ]}],
+  "COMBO 2X2": [{ name:"COMBO 2X2", images:[
+    "imagenes/combo-2x2-1.jpg","imagenes/combo-2x2-2.jpg","imagenes/combo-2x2-3.jpg"
+  ]}],
+  "COMBO BASE y NIDO": [{ name:"COMBO BASE NIDO", images:[
+    "imagenes/combo-base-nido-1.jpg","imagenes/combo-base-nido-2.jpg","imagenes/combo-base-nido-3.jpg"
+  ]}],
+  "CAMA BASE ECO 100": [{ name:"CAMA BASE ECO 100", images:[
+    "imagenes/cama-base-eco-100-1.jpg","imagenes/cama-base-eco-100-2.jpg","imagenes/cama-base-eco-100-3.jpg"
+  ]}],
+  "BASE ITALIANA PIECERO TELA AMIGABLE": [{ name:"BASE ITALIANA PIECERO", images:[
+    "imagenes/base-italiana-piecero-1.jpg","imagenes/base-italiana-piecero-2.jpg","imagenes/base-italiana-piecero-3.jpg"
+  ]}],
+  "BASE ITALIANA NORMAL TELA AMIGABLE": [{ name:"BASE ITALIANA NORMAL", images:[
+    "imagenes/base-italiana-normal-1.jpg","imagenes/base-italiana-normal-2.jpg","imagenes/base-italiana-normal-3.jpg"
+  ]}]
+},
+"CAMAROTES": {
+  "CAMAROTE TUBO 120X120": [{ name:"CAMAROTE TUBO 120X120", images:[
+    "imagenes/camarote-tubo-120x120-1.jpg","imagenes/camarote-tubo-120x120-2.jpg","imagenes/camarote-tubo-120x120-3.jpg"
+  ]}],
+  "CAMAROTE RUSTICO 120": [{ name:"CAMAROTE RUSTICO 120", images:[
+    "imagenes/camarote-rustico-120-1.jpg","imagenes/camarote-rustico-120-2.jpg","imagenes/camarote-rustico-120-3.jpg"
+  ]}],
+  "CAMAROTE RUSTICO 100": [{ name:"CAMAROTE RUSTICO 100", images:[
+    "imagenes/camarote-rustico-100-1.jpg","imagenes/camarote-rustico-100-2.jpg","imagenes/camarote-rustico-100-3.jpg"
+  ]}],
+  "CAMAROTE TUBO 140X120": [{ name:"CAMAROTE TUBO 140X120", images:[
+    "imagenes/camarote-tubo-140x120-1.jpg","imagenes/camarote-tubo-140x120-2.jpg","imagenes/camarote-tubo-140x120-3.jpg"
+  ]}],
+  "CAMA AUXILIAR MADERA": [{ name:"CAMA AUXILIAR MADERA", images:[
+    "imagenes/cama-auxiliar-madera-1.jpg","imagenes/cama-auxiliar-madera-2.jpg","imagenes/cama-auxiliar-madera-3.jpg"
+  ]}],
+  "CAMAROTE PINO 100": [{ name:"CAMAROTE PINO 100", images:[
+    "imagenes/camarote-pino-100-1.jpg","imagenes/camarote-pino-100-2.jpg","imagenes/camarote-pino-100-3.jpg"
+  ]}],
+  "CAMAROTE CEDRO 120": [{ name:"CAMAROTE CEDRO 120", images:[
+    "imagenes/camarote-cedro-120-1.jpg","imagenes/camarote-cedro-120-2.jpg","imagenes/camarote-cedro-120-3.jpg"
+  ]}],
+  "CAMAROTE TUBO 3 100": [{ name:"CAMAROTE TUBO 3 100", images:[
+    "imagenes/camarote-tubo3-100-1.jpg","imagenes/camarote-tubo3-100-2.jpg","imagenes/camarote-tubo3-100-3.jpg"
+  ]}],
+  "CAMAROTE ERRE": [{ name:"CAMAROTE ERRE", images:[
+    "imagenes/camarote-erre-1.jpg","imagenes/camarote-erre-2.jpg","imagenes/camarote-erre-3.jpg"
+  ]}]
+},
+"CLOSETHS": {
+  "CLOSETH FIJO 120 ESPECIAL": [{ name:"CLOSETH FIJO 120 ESPECIAL", images:[
+    "imagenes/closeth-fijo-120-especial-1.jpg","imagenes/closeth-fijo-120-especial-2.jpg","imagenes/closeth-fijo-120-especial-3.jpg"
+  ]}],
+  "CLOSERTH 120 DESARMABLE": [{ name:"CLOSERTH 120 DESARMABLE", images:[
+    "imagenes/closerth-120-desarmable-1.jpg","imagenes/closerth-120-desarmable-2.jpg","imagenes/closerth-120-desarmable-3.jpg"
+  ]}],
+  "CLOSERTH FIJO 120": [{ name:"CLOSERTH FIJO 120", images:[
+    "imagenes/closerth-fijo-120-1.jpg","imagenes/closerth-fijo-120-2.jpg","imagenes/closerth-fijo-120-3.jpg"
+  ]}],
+  "CLOSER 80 INFANTIL": [{ name:"CLOSER 80 INFANTIL", images:[
+    "imagenes/closer-80-infantil-1.jpg","imagenes/closer-80-infantil-2.jpg","imagenes/closer-80-infantil-3.jpg"
+  ]}],
+  "CLOSETH MODULAR FIJO 80": [{ name:"CLOSETH MODULAR FIJO 80", images:[
+    "imagenes/closeth-modular-fijo-80-1.jpg","imagenes/closeth-modular-fijo-80-2.jpg","imagenes/closeth-modular-fijo-80-3.jpg"
+  ]}],
+  "CLOSETH 150 MODULAR ESPECIAL": [{ name:"CLOSETH 150 MODULAR ESPECIAL", images:[
+    "imagenes/closeth-150-modular-especial-1.jpg","imagenes/closeth-150-modular-especial-2.jpg","imagenes/closeth-150-modular-especial-3.jpg"
+  ]}],
+  "CLOSETH 2X2": [{ name:"CLOSETH 2X2", images:[
+    "imagenes/closeth-2x2-1.jpg","imagenes/closeth-2x2-2.jpg","imagenes/closeth-2x2-3.jpg"
+  ]}],
+  "CLOSERT 150 DESARMABLE": [{ name:"CLOSERT 150 DESARMABLE", images:[
+    "imagenes/closert-150-desarmable-1.jpg","imagenes/closert-150-desarmable-2.jpg","imagenes/closert-150-desarmable-3.jpg"
+  ]}]
+},
+"COMEDORES": {
+  "COMEDOR RUSTICO 6P TAPA MADERA":[{ name:"COMEDOR RUSTICO 6P TAPA MADERA", images:[
+    "imagenes/comedor-rustico-6p-1.jpg","imagenes/comedor-rustico-6p-2.jpg","imagenes/comedor-rustico-6p-3.jpg"
+  ]}],
+  "COMEDOR TAILANDEZ 6P":[{ name:"COMEDOR TAILANDEZ 6P", images:[
+    "imagenes/comedor-tailandez-6p-1.jpg","imagenes/comedor-tailandez-6p-2.jpg","imagenes/comedor-tailandez-6p-3.jpg"
+  ]}],
+  "COMEDOR TAILANDEZ 4P":[{ name:"COMEDOR TAILANDEZ 4P", images:[
+    "imagenes/comedor-tailandez-4p-1.jpg","imagenes/comedor-tailandez-4p-2.jpg","imagenes/comedor-tailandez-4p-3.jpg"
+  ]}],
+  "COMEDOR TINTILLA 4P":[{ name:"COMEDOR TINTILLA 4P", images:[
+    "imagenes/comedor-tintilla-4p-1.jpg","imagenes/comedor-tintilla-4p-2.jpg","imagenes/comedor-tintilla-4p-3.jpg"
+  ]}],
+  "COMEDOR 6P SILLAS PLAYERAS":[{ name:"COMEDOR 6P SILLAS PLAYERAS", images:[
+    "imagenes/comedor-sillas-playeras-6p-1.jpg","imagenes/comedor-sillas-playeras-6p-2.jpg","imagenes/comedor-sillas-playeras-6p-3.jpg"
+  ]}],
+  "COMEDOR RUSTICO TITANIC 6P":[{ name:"COMEDOR RUSTICO TITANIC 6P", images:[
+    "imagenes/comedor-rustico-titanic-6p-1.jpg","imagenes/comedor-rustico-titanic-6p-2.jpg","imagenes/comedor-rustico-titanic-6p-3.jpg"
+  ]}],
+  "COMEDOR TINTILLA 6P":[{ name:"COMEDOR TINTILLA 6P", images:[
+    "imagenes/comedor-tintilla-6p-1.jpg","imagenes/comedor-tintilla-6p-2.jpg","imagenes/comedor-tintilla-6p-3.jpg"
+  ]}]
+},
+"SALAS": {
+  "HUEVO SOFA CAMA":[{ name:"HUEVO SOFA CAMA", images:[
+    "img/salas/Huevosofácama.jpeg",
+    
+  ]}],
+  "BABERO PUFF":[{ name:"BABERO PUFF", images:[
+    "img/salas/Babero puff.jpeg",
+  ]}],
+  "BABERO SILLA MESEDORA":[{ name:"BABERO SILLA MESEDORA", images:[
+    "img/salas/Babero silla mesedora.jpeg",
+    
+  ]}],
+  "SALA VALENTINA":[{ name:"SALA VALENTINA", images:[
+
+  "img/salas/Valentina.jpeg",
+
+  ]}],
+  "SALA PALMA BAUL":[{ name:"SALA PALMA BAUL", images:[
+    "imagenes/sala-palma-baul-1.jpg",
+    "imagenes/sala-palma-baul-2.jpg",
+    "imagenes/sala-palma-baul-3.jpg"
+  ]}]
+},
+"TOCADORES": {
+  "TORRE HOLLYVOOD":[{ name:"TORRE HOLLYVOOD", images:[
+    "img/tocadores/HOLLYVOODt1.png",
+    "img/tocadores/HOLLYVOODt11.png",
+    "img/tocadores/HOLLYVOODt2.png",
+    "img/tocadores/HOLLYVOODt3.png",
+  
+  ]}],
+  "HOLLYVOOD 120  ":[{ name:"HOLLYVOOD 120 ", images:[
+    "img/tocadores/HOLLYVOOD1201.png",
+    "img/tocadores/HOLLYVOOD1202.png",
+    "img/tocadores/HOLLYVOOD1203.png",
+    "img/tocadores/HOLLYVOOD1204.png",
+  ]}],
+
+  "TOCADOR HOLLYWOOD 60":[{ name:"TOCADOR HOLLYWOOD 60", images:[
+    "img/tocadores/Hollywood601.png",
+    "img/tocadores/Hollywood602.png",
+    "img/tocadores/Hollywood603.png",
+    "img/tocadores/Hollywood604.png",
+    "img/tocadores/Hollywood605.png",
+    "img/tocadores/Hollywood606.png",
+
+        
+  ]}],
+
+  "TORRE HOLLYWOOD GIRATORIO":[{ name:"TORRE HOLLYWOOD GIRATORIO", images:[
+    "img/tocadores/GIRATORIot1.png",
+    "img/tocadores/GIRATORIot11.png",
+    "img/tocadores/GIRATORIot2.png",
+    "img/tocadores/GIRATORIot22.png"
+  ]}],
+  "HOLLYWOOD 120 ESPECIAL":[{ name:"HOLLYWOOD 120 ESPECIAL", images:[
+    "img/tocadores/especialholly.png",
+    "img/tocadores/especialholly1.png"
+    
+  ]}],
+  "HOLLYWOOD ESPEJO CORREDIZO":[{ name:"HOLLYWOOD ESPEJO CORREDIZO", images:[
+    "img/tocadores/espejocorredizo1.png",  
+    "img/tocadores/espejocorredizo2.png",
+    "img/tocadores/espejocorredizo3.png",
+    "img/tocadores/espejocorredizo4.png"
+  ]}],
+  "HOLLYWOOD 80":[{ name:"HOLLYWOOD 80", images:[
+    "img/tocadores/Hollywood80.png",
+    "img/tocadores/Hollywood801.png",
+    "img/tocadores/Hollywood802.png",  
+     "img/tocadores/Hollywood803.png",
+
+
+  ]}],
+   "HOLLYWOOD 80 ESPEJOS":[{ name:"HOLLYWOOD 80 ESPEJOS", images:[
+    "img/tocadores/Hollywood80espe.png",
+    "img/tocadores/Hollywood801espe.png",
+    "img/tocadores/Hollywood802espe.png",  
+     "img/tocadores/Hollywood803espe.png",
+
+
+  ]}]
+},
+
+"CAMAS INFANTILES": {
+
+"CAMA INFANTIL NIÑO": [
+    { name:"INFANTIL", images:[
+      "img/camainfantil/niño/nino1.jpeg",
+      "img/camainfantil/niño/nino2.jpeg",
+      "img/camainfantil/niño/nino3.jpeg",
+      "img/camainfantil/niño/nino4.jpeg",
+      "img/camainfantil/niño/nino5.jpeg",
+      "img/camainfantil/niño/nino6.jpeg",
+      "img/camainfantil/niño/nino7.jpeg",
+      "img/camainfantil/niño/nino8.jpeg",
+      "img/camainfantil/niño/nino9.jpeg",
+      "img/camainfantil/niño/nino10.jpeg",
+    ] }
+  ],
+
+  "CAMA INFANTIL NIÑA": [
+    { name:"INFANTIL", images:[
+      "img/camainfantil/niña/nina1.jpeg",
+      "img/camainfantil/niña/nina2.jpeg",
+      "img/camainfantil/niña/nina3.jpeg",
+      "img/camainfantil/niña/nina4.jpeg",
+      "img/camainfantil/niña/nina5.jpeg",
+      "img/camainfantil/niña/nina6.jpeg",
+      "img/camainfantil/niña/nina7.jpeg",
+      "img/camainfantil/niña/nina8.jpeg"
+    ] }
+  ]
+}
+};
+
+/* ----------------------------
+   Render: menú lateral y grid
+---------------------------- */
+
+const menuEl = document.getElementById("categoryMenu");
+const gridEl = document.getElementById("productGrid");
+
+// Build menu
+for(const cat in catalogData){
+  const catEl = document.createElement("div");
+  catEl.className = "category";
+  catEl.innerHTML = `<span>${cat}</span><span style="font-size:13px;color:var(--muted)">▾</span>`;
+
+  const subWrap = document.createElement("div");
+  subWrap.className = "subcontainer";
+  subWrap.style.display = "none";
+
+  catEl.addEventListener("click", () => {
+    subWrap.style.display = subWrap.style.display === "none" ? "block" : "none";
+  });
+
+  for(const sub in catalogData[cat]){
+    const subEl = document.createElement("div");
+    subEl.className = "subcategory";
+    subEl.textContent = sub;
+    subEl.addEventListener("click", () => loadProducts(cat, sub));
+    subWrap.appendChild(subEl);
+  }
+
+  menuEl.appendChild(catEl);
+  menuEl.appendChild(subWrap);
+}
+
+/* ----------------------------
+   Cargar productos
+---------------------------- */
+
+function loadProducts(cat, sub){
+  gridEl.innerHTML = "";
+  const products = catalogData[cat][sub];
+  if(!products || products.length === 0){
+    gridEl.innerHTML = "<p class='muted'>No hay productos disponibles.</p>";
+    return;
+  }
+
+  products.forEach(p => {
+    const pData = p;
+    const card = document.createElement("div");
+    card.className = "product-card";
+    card.innerHTML = `
+      <div class="product-thumb"><img src="${pData.images[0]}" alt="${pData.name}" onerror="this.style.filter='grayscale(60%)'; this.style.objectFit='cover'; this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22240%22 height=%22180%22><rect width=%22100%25%22 height=%22100%25%22 fill=%22%23e9e4db%22/></svg>'" /></div>
+      <div>
+        <h3 class="product-title">${pData.name}</h3>
+        <p class="product-sub">${cat} › ${sub}</p>
+      </div>
+    `;
+    card.addEventListener("click", () => openProductModal(pData, cat, sub));
+    gridEl.appendChild(card);
+  });
+
+  // scroll to grid
+  window.scrollTo({top:110, behavior:'smooth'});
+}
+
+/* ----------------------------
+   Modal / Slider logic
+---------------------------- */
+
+const modal = document.getElementById("productModal");
+const mainImg = document.getElementById("mainGalleryImg");
+const modalTitle = document.getElementById("modalTitle");
+const modalSub = document.getElementById("modalSub");
+const modalCategory = document.getElementById("modalCategory");
+const thumbRow = document.getElementById("thumbRow");
+let activeImages = [];
+let activeIndex = 0;
+
+function openProductModal(product, cat, sub){
+  activeImages = (product.images && product.images.length) ? product.images.slice() : [];
+  activeIndex = 0;
+  modalTitle.textContent = product.name;
+  modalSub.textContent = ""; // could add price/desc later
+  modalCategory.textContent = `${cat} › ${sub}`;
+
+  updateModalImage();
+  buildThumbs();
+
+  modal.classList.remove("hidden");
+  modal.setAttribute("aria-hidden","false");
+
+  // focus for keyboard controls
+  document.addEventListener('keydown', keyNav);
+}
+
+function updateModalImage(){
+  if(!activeImages.length){
+    mainImg.src = '';
+    mainImg.alt = 'Sin imagen';
+    return;
+  }
+  mainImg.src = activeImages[activeIndex];
+  // highlight thumbs
+  const thumbs = thumbRow.querySelectorAll('img');
+  thumbs.forEach((t,i)=> t.classList.toggle('active', i === activeIndex));
+}
+
+function buildThumbs(){
+  thumbRow.innerHTML = '';
+  activeImages.forEach((src, i) => {
+    const t = document.createElement('img');
+    t.src = src;
+    t.alt = 'mini ' + i;
+    t.addEventListener('click', () => {
+      activeIndex = i;
+      updateModalImage();
+    });
+    t.onerror = () => { t.style.filter='grayscale(60%)'; t.src = ''; }
+    if(i===activeIndex) t.classList.add('active');
+    thumbRow.appendChild(t);
+  });
+}
+
+// controls
+document.getElementById('prevBtn').addEventListener('click', () => {
+  if(!activeImages.length) return;
+  activeIndex = (activeIndex - 1 + activeImages.length) % activeImages.length;
+  updateModalImage();
+});
+document.getElementById('nextBtn').addEventListener('click', () => {
+  if(!activeImages.length) return;
+  activeIndex = (activeIndex + 1) % activeImages.length;
+  updateModalImage();
+});
+
+document.getElementById('closeModal').addEventListener('click', closeModal);
+document.getElementById('cerrarGrande').addEventListener('click', closeModal);
+modal.addEventListener('click', (e) => { if(e.target === modal) closeModal(); });
+
+function closeModal(){
+  modal.classList.add('hidden');
+  modal.setAttribute("aria-hidden","true");
+  document.removeEventListener('keydown', keyNav);
+}
+
+function keyNav(e){
+  if(e.key === 'ArrowRight') document.getElementById('nextBtn').click();
+  if(e.key === 'ArrowLeft') document.getElementById('prevBtn').click();
+  if(e.key === 'Escape') closeModal();
+}
+
+/* swipe support (simple) */
+let touchStartX = 0;
+let touchEndX = 0;
+const wrapper = document.getElementById('galleryImageWrapper');
+wrapper.addEventListener('touchstart', (e)=> touchStartX = e.changedTouches[0].screenX);
+wrapper.addEventListener('touchend', (e)=> {
+  touchEndX = e.changedTouches[0].screenX;
+  if(touchEndX - touchStartX > 50) document.getElementById('prevBtn').click();
+  if(touchStartX - touchEndX > 50) document.getElementById('nextBtn').click();
+});
+
+/* ----------------------------
+   Search quick filter
+---------------------------- */
+const searchInput = document.getElementById('searchInput');
+searchInput.addEventListener('input', (e)=>{
+  const q = e.target.value.trim().toLowerCase();
+  // flatten products and show those matching
+  if(q === ''){
+    // reload first category/subcategory open by default
+    // leave as is (no change)
+    return;
+  }
+  gridEl.innerHTML = '';
+  for(const cat in catalogData){
+    for(const sub in catalogData[cat]){
+      const items = catalogData[cat][sub];
+      items.forEach(it => {
+        const name = it.name.toLowerCase();
+        if(name.includes(q) || cat.toLowerCase().includes(q) || sub.toLowerCase().includes(q)){
+          const card = document.createElement('div');
+          card.className = 'product-card';
+          card.innerHTML = `<div class="product-thumb"><img src="${it.images[0]}" alt="${it.name}" /></div>
+            <div><h3 class="product-title">${it.name}</h3><p class="product-sub">${cat} › ${sub}</p></div>`;
+          card.addEventListener('click', ()=> openProductModal(it, cat, sub));
+          gridEl.appendChild(card);
+        }
+      });
+    }
+  }
+});
+
+/* ----------------------------
+   Inicial: abrir la 1era categoría y sub
+---------------------------- */
+(function initialLoad(){
+  const firstCat = Object.keys(catalogData)[0];
+  const firstSub = Object.keys(catalogData[firstCat])[0];
+  // show products
+  if(firstCat && firstSub) {
+    // expand first category for user clarity
+    const catNodes = document.querySelectorAll('.category');
+    if(catNodes[0]) {
+      const subcont = catNodes[0].nextElementSibling;
+      if(subcont) subcont.style.display = 'block';
+    }
+    loadProducts(firstCat, firstSub);
+  }
+})();
+</script>
+
+</body>
+</html>
